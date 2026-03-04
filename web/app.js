@@ -1,5 +1,5 @@
-import { anonymizeText, runSelfChecks } from './pii.js';
-import { anonymizeCsvText, csvSupportStatus } from './csv.js';
+import { createAnonymizer, runSelfChecks } from './pii.js';
+import { anonymizeCsvText, csvSupportStatus, runCsvSelfChecks } from './csv.js';
 
 const MAX_PREVIEW = 20_000;
 
@@ -47,8 +47,8 @@ function updatePreview() {
   afterPreviewEl.textContent = asPreview(state.outputText);
 }
 
-function anonymizeValue(text) {
-  return anonymizeText(text, {
+function makeAnonymizer() {
+  return createAnonymizer({
     pseudonymize: pseudoToggle.checked,
     debug: state.debug,
   });
@@ -105,12 +105,15 @@ dropZone.addEventListener('drop', (event) => {
 });
 
 anonymizeBtn.addEventListener('click', () => {
+  const anonymizer = makeAnonymizer();
+
   if (isCsv()) {
-    state.outputText = anonymizeCsvText(state.sourceText, anonymizeValue, {
+    state.outputText = anonymizeCsvText(state.sourceText, anonymizer, {
       includeHeader: csvHeaderToggle.checked,
+      debug: state.debug,
     });
   } else {
-    state.outputText = anonymizeValue(state.sourceText);
+    state.outputText = anonymizer.anonymizeValue(state.sourceText);
   }
 
   updatePreview();
@@ -146,7 +149,10 @@ debugToggle.addEventListener('change', () => {
 });
 
 selfCheckBtn.addEventListener('click', () => {
-  const results = runSelfChecks();
+  const textResults = runSelfChecks();
+  const csvResults = runCsvSelfChecks((options) => createAnonymizer({ ...options, debug: false }));
+  const results = [...textResults, ...csvResults];
+
   const pass = results.every((item) => item.pass);
   const summary = results.map((item) => `${item.pass ? 'PASS' : 'FAIL'}: ${item.name}`).join(' | ');
   setStatus(`Self-check ${pass ? 'PASS' : 'FAIL'} → ${summary}`);

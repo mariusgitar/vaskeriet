@@ -1,3 +1,34 @@
+const NAME_HEADERS = new Set([
+  'navn',
+  'fornavn',
+  'etternavn',
+  'name',
+  'first_name',
+  'firstname',
+  'last_name',
+  'lastname',
+  'full_name',
+  'fullname',
+]);
+
+export function normalizeHeader(value) {
+  return String(value ?? '').trim().replace(/^"+|"+$/g, '').trim().toLowerCase();
+}
+
+export function isNameHeader(value) {
+  return NAME_HEADERS.has(normalizeHeader(value));
+}
+
+export function getNameColumnIndexes(headerRow = []) {
+  const indexes = [];
+  headerRow.forEach((header, index) => {
+    if (isNameHeader(header)) {
+      indexes.push(index);
+    }
+  });
+  return indexes;
+}
+
 export function parseCsv(input) {
   const rows = [];
   let row = [];
@@ -65,26 +96,66 @@ export function serializeCsv(rows) {
 }
 
 export function anonymizeCsvText(input, anonymizeFn, options = {}) {
-  const { includeHeader = false } = options;
+  const { includeHeader = false, debug = false } = options;
   const rows = parseCsv(input);
 
   if (rows.length === 0) {
     return '';
   }
 
+  const headerRow = rows[0] || [];
+  const nameColumnIndexes = getNameColumnIndexes(headerRow);
+
+  if (debug) {
+    const matchedHeaders = nameColumnIndexes.map((index) => headerRow[index]);
+    console.debug('[csv] name-column match', { nameColumnIndexes, matchedHeaders });
+  }
+
   const startRow = includeHeader ? 0 : 1;
-  const outRows = rows.map((row, index) => {
-    if (index < startRow) {
+  const outRows = rows.map((row, rowIndex) => {
+    if (rowIndex < startRow) {
       return [...row];
     }
-    return row.map((cell) => anonymizeFn(cell));
+
+    return row.map((cell, columnIndex) => {
+      if (nameColumnIndexes.includes(columnIndex)) {
+        return anonymizeFn.anonymizeNameCell(cell);
+      }
+      return anonymizeFn.anonymizeValue(cell);
+    });
   });
 
   return serializeCsv(outRows);
 }
 
+export function runCsvSelfChecks(anonymizeFnFactory) {
+  const sampleCsv = [
+    'navn,etternavn,email,telefon,fnr,notat',
+    'Ola,Hansen,ola@example.no,12345678,01019012345,"Hei, test"',
+    'Kari,Normann,kari@example.no,"12 34 56 78",02029012345,ok',
+  ].join('\n');
+
+  const masked = anonymizeCsvText(sampleCsv, anonymizeFnFactory({ pseudonymize: false }), { includeHeader: false });
+  const pseudo = anonymizeCsvText(sampleCsv, anonymizeFnFactory({ pseudonymize: true }), { includeHeader: false });
+
+  return [
+    {
+      name: 'csv name columns masked',
+      pass: !masked.includes('Ola') && !masked.includes('Hansen') && masked.includes('[NAME]'),
+    },
+    {
+      name: 'csv name columns pseudonymized',
+      pass: pseudo.includes('[NAME_1]') && pseudo.includes('[NAME_2]'),
+    },
+    {
+      name: 'csv still masks email/phone/fnr',
+      pass: masked.includes('[EMAIL]') && masked.includes('[PHONE]') && masked.includes('[FNR]'),
+    },
+  ];
+}
+
 export function csvSupportStatus(includeHeader) {
   return includeHeader
-    ? 'CSV: anonymiserer alle celler inkludert header.'
-    : 'CSV: anonymiserer alle dataceller (header beholdes).';
+    ? 'CSV: anonymiserer alle dataceller, og header hvis valgt. Navnekolonner matches via header.'
+    : 'CSV: anonymiserer dataceller. Navnekolonner matches via header.';
 }

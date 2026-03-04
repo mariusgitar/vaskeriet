@@ -2,20 +2,49 @@
 
 En liten anonymiseringsapp som kjører **100% lokalt i nettleseren**. Ingen data sendes til server.
 
-## PR3 scope (Pages deploy + polish)
+## Features
 - Ren HTML/CSS/JS uten build-step.
-- Støtte for `.txt` og `.csv` med lokal anonymisering i browser.
+- Drag & drop + filvelger for `.txt` og `.csv`.
 - Side-by-side preview (før/etter), avkortet til maks 20k tegn.
-- Pseudonymisering/maskering, debug-toggle og self-check.
-- GitHub Pages deploy-workflow på push til `main`.
-- Deploy av statisk innhold direkte fra `web/`.
-- `.nojekyll` inkludert for stabil statisk hosting.
+- Regler for anonymisering:
+  - Email → `[EMAIL]`
+  - Norsk telefonnummer → `[PHONE]`
+  - Fødselsnummer (11 siffer med enkel plausibilitet dd/mm) → `[FNR]`
+- CSV: header-basert anonymisering av navnkolonner (`navn`, `fornavn`, `etternavn`, `name`, `first_name`, `last_name`, `full_name`, m.fl.).
+  - Maskering: `[NAME]`
+  - Pseudonymisering: `[NAME_1]`, `[NAME_2]`, ...
+- Valgfri pseudonymisering i UI (`[EMAIL_#]`, `[PHONE_#]`, `[FNR_#]`, `[NAME_#]`).
+- CSV-anonymisering av øvrige celler (header kan anonymiseres via checkbox).
+- Last ned anonymisert output (`.txt` og `.csv`).
+- Debug-toggle + self-check-knapp.
 
 ## Kjøring lokalt
 1. Åpne `web/index.html` i nettleser.
 2. Last opp `web/fixtures/sample.txt` eller `web/fixtures/sample.csv`.
 3. Trykk **Anonymiser**.
 4. Trykk **Last ned**.
+
+## How to test (PR2a)
+1. Åpne `web/index.html` lokalt.
+2. Last `web/fixtures/sample.csv`.
+3. Kjør anonymisering med maskering:
+   - `navn`/`etternavn` blir anonymisert til `[NAME]`.
+   - `email`/`telefon`/`fnr` anonymiseres fortsatt.
+4. Slå på pseudonymisering og anonymiser igjen:
+   - navnkolonner blir `[NAME_1]`, `[NAME_2]`, ...
+   - samme inputverdi gir samme token i samme kjøring.
+5. Last ned CSV og åpne i Excel (eller kompatibelt verktøy) for å bekrefte brukbart format.
+6. Klikk **Self-check** og bekreft PASS.
+
+## Known limitations
+- Navn i fritekst detekteres **ikke** automatisk.
+- Navn anonymiseres kun i CSV-kolonner som matches av støttede header-navn.
+- Regex-basert PII-deteksjon kan gi false positives/false negatives.
+
+## Feilsøking (kort)
+- Hvis **Anonymiser** er grå: sjekk at filtype er `.txt` eller `.csv`.
+- Hvis CSV ser feil ut etter eksport: sjekk input med anførselstegn/komma.
+- Skru på **Debug** for konsoll-logger (inkl. matchede name-kolonner).
 
 ## Deploy (GitHub Pages)
 Workflow: `.github/workflows/pages.yml`.
@@ -26,23 +55,9 @@ Workflow: `.github/workflows/pages.yml`.
   1. `Settings` → `Pages`.
   2. Source: **GitHub Actions**.
 
-## Testkriterier (PR3)
-- Etter merge til `main` kjører workflow automatisk.
-- GitHub Pages-lenken viser appen.
-- `sample.txt` og `sample.csv` fungerer i Pages-miljø.
-
-## Feilsøking (kort)
-- Hvis workflow feiler: sjekk at Pages source er satt til **GitHub Actions**.
-- Hvis app ikke oppdateres: verifiser siste run i Actions-fanen og åpne ny incognito-fane.
-- Hvis CSV ser feil ut etter eksport: sjekk input med anførselstegn/komma.
-- Skru på **Debug** for konsoll-logger.
-
 ## Security / Privacy
 - Ingen `fetch`, XHR eller WebSocket for databehandling.
 - Ingen eksterne CDN-avhengigheter.
 - Data behandles kun i browser-minnet.
 
 Se også [`SECURITY.md`](SECURITY.md).
-
-## Next PR plan
-- Ingen planlagte funksjonsendringer nå; fokus på vedlikehold, bugfixes og eventuelle regex-forbedringer.

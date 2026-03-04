@@ -22,25 +22,37 @@ function createTokenFactory(enabled, label) {
   };
 }
 
-export function anonymizeText(input, options = {}) {
+export function createAnonymizer(options = {}) {
   const { pseudonymize = false, debug = false } = options;
   const emailToken = createTokenFactory(pseudonymize, 'EMAIL');
   const phoneToken = createTokenFactory(pseudonymize, 'PHONE');
   const fnrToken = createTokenFactory(pseudonymize, 'FNR');
+  const nameToken = createTokenFactory(pseudonymize, 'NAME');
 
-  let output = input.replace(EMAIL_REGEX, (match) => emailToken(match));
-  output = output.replace(PHONE_REGEX, (match) => phoneToken(match));
-  output = output.replace(FNR_REGEX, (match) => (isPlausibleFnr(match) ? fnrToken(match) : match));
+  function anonymizeValue(input) {
+    let output = input.replace(EMAIL_REGEX, (match) => emailToken(match));
+    output = output.replace(PHONE_REGEX, (match) => phoneToken(match));
+    output = output.replace(FNR_REGEX, (match) => (isPlausibleFnr(match) ? fnrToken(match) : match));
 
-  if (debug) {
-    console.debug('[pii] anonymizeText completed', {
-      inputLength: input.length,
-      outputLength: output.length,
-      pseudonymize,
-    });
+    if (debug) {
+      console.debug('[pii] anonymizeValue completed', {
+        inputLength: input.length,
+        outputLength: output.length,
+        pseudonymize,
+      });
+    }
+
+    return output;
   }
 
-  return output;
+  return {
+    anonymizeValue,
+    anonymizeNameCell: (input) => nameToken(input),
+  };
+}
+
+export function anonymizeText(input, options = {}) {
+  return createAnonymizer(options).anonymizeValue(input);
 }
 
 export function runSelfChecks() {

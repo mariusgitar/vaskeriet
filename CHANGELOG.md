@@ -4,29 +4,32 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
-- PR3: GitHub Pages workflow (`.github/workflows/pages.yml`) for deploy on push to `main`.
-- PR3: `.nojekyll` i `web/` for stabil statisk publisering.
-- README deploy-seksjon med oppsett for Pages via GitHub Actions.
+- PR2a: CSV header-basert anonymisering av navnekolonner (`navn`, `fornavn`, `etternavn`, `name`, `first_name`, `last_name`, `full_name`, m.fl.).
+- PR2a: Nye hjelpefunksjoner for header-normalisering og navnkolonne-match (`normalizeHeader`, `isNameHeader`, `getNameColumnIndexes`).
+- PR2a: Self-check utvidet med CSV-navnkontroller (ingen rå navn + NAME-tokens + fortsatt EMAIL/PHONE/FNR masking).
+- Oppdatert `web/fixtures/sample.csv` med tydelige `navn`/`etternavn` kolonner.
 
 ### Changed
-- README oppdatert til PR3-scope og nye testkriterier for produksjonsdeploy.
+- CSV-anonymisering bruker nå `NAME`-token family for navnkolonner basert på header.
+- README oppdatert med feature-beskrivelse, known limitations og PR2a teststeg.
 
 ### Fixed
-- Fjernet placeholder-workflow og erstattet med faktisk deployflyt til Pages.
+- Pseudonym-mapping er nå konsistent innen én anonymiseringskjøring også for CSV-celler.
 
-## [v0.3.0] - after PR3 merge
-- Planlagt release-tag etter merge av PR3.
+## [v0.3.0]
+- GitHub Pages workflow (`.github/workflows/pages.yml`) for deploy on push to `main`.
+- `.nojekyll` i `web/` for stabil statisk publisering.
+- README deploy-seksjon med oppsett for Pages via GitHub Actions.
 
 ## [v0.2.0]
-- PR2: Lokal CSV-parser med støtte for anførselstegn, escaped quotes og komma i felter.
-- PR2: CSV-serialisering som bevarer gyldig CSV-format ved eksport.
-- PR2: Checkbox for å styre om CSV-header skal anonymiseres.
-- Oppdatert `sample.csv` med felter som tester komma og anførselstegn.
+- Lokal CSV-parser med støtte for anførselstegn, escaped quotes og komma i felter.
+- CSV-serialisering som bevarer gyldig CSV-format ved eksport.
+- Checkbox for å styre om CSV-header skal anonymiseres.
 - `web/app.js` håndterer CSV som cellerader (ikke rå tekst) ved anonymisering.
 - CSV-anonymisering går gjennom alle celler robust, inkludert quoted felter.
 
 ## [v0.1.0]
-- PR1 skeleton med statisk web-app i `web/`.
+- Skeleton med statisk web-app i `web/`.
 - Drag/drop og filvelger for `.txt`/`.csv`.
 - Tekst-anonymisering for email, norsk telefon og plausibelt fnr.
 - Valgfri pseudonymisering per unik verdi.
