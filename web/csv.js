@@ -154,11 +154,16 @@ export function runCsvSelfChecks(anonymizeFnFactory) {
   const sampleSemicolonCsv = [
     'navn;telefonnummer;personnummer;epost;hjemmekontor_dager_per_uke',
     'Anders Johansen;41234567;12058512345;anders.johansen@example.com;2',
+    'Anders Johansen;41234567;12058512345;anders.johansen@example.com;3',
+    'Eva Nilsen;99887766;01019012345;eva.nilsen@example.com;1',
   ].join('\n');
 
   const masked = anonymizeCsvText(sampleCsv, anonymizeFnFactory({ pseudonymize: false }), { includeHeader: false });
   const pseudo = anonymizeCsvText(sampleCsv, anonymizeFnFactory({ pseudonymize: true }), { includeHeader: false });
   const semicolonMasked = anonymizeCsvText(sampleSemicolonCsv, anonymizeFnFactory({ pseudonymize: false }), {
+    includeHeader: false,
+  });
+  const semicolonPseudo = anonymizeCsvText(sampleSemicolonCsv, anonymizeFnFactory({ pseudonymize: true }), {
     includeHeader: false,
   });
 
@@ -184,6 +189,22 @@ export function runCsvSelfChecks(anonymizeFnFactory) {
         semicolonMasked.includes('[FNR]') &&
         semicolonMasked.includes('[EMAIL]') &&
         !semicolonMasked.includes(','),
+    },
+    {
+      name: 'csv pseudonyms are stable for duplicate values',
+      pass:
+        (semicolonPseudo.match(/\[NAME_1\]/g) || []).length === 2 &&
+        (semicolonPseudo.match(/\[EMAIL_1\]/g) || []).length === 2 &&
+        (semicolonPseudo.match(/\[PHONE_1\]/g) || []).length === 2,
+    },
+    {
+      name: 'csv distinct values get distinct pseudonyms',
+      pass:
+        semicolonPseudo.includes('[NAME_2]') &&
+        semicolonPseudo.includes('[EMAIL_2]') &&
+        semicolonPseudo.includes('[PHONE_2]') &&
+        !semicolonPseudo.includes('anders.johansen@example.com') &&
+        !semicolonPseudo.includes('eva.nilsen@example.com'),
     },
   ];
 }

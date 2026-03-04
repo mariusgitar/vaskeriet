@@ -1,4 +1,4 @@
-import { createAnonymizer, runSelfChecks } from './pii.js';
+import { createAnonymizer, Pseudonymizer, runSelfChecks } from './pii.js';
 import { anonymizeCsvText, csvSupportStatus, runCsvSelfChecks } from './csv.js';
 
 const MAX_PREVIEW = 20_000;
@@ -47,10 +47,11 @@ function updatePreview() {
   afterPreviewEl.textContent = asPreview(state.outputText);
 }
 
-function makeAnonymizer() {
+function makeAnonymizer(pseudonymizer) {
   return createAnonymizer({
     pseudonymize: pseudoToggle.checked,
     debug: state.debug,
+    pseudonymizer,
   });
 }
 
@@ -105,7 +106,8 @@ dropZone.addEventListener('drop', (event) => {
 });
 
 anonymizeBtn.addEventListener('click', () => {
-  const anonymizer = makeAnonymizer();
+  const pseudonymizer = new Pseudonymizer();
+  const anonymizer = makeAnonymizer(pseudonymizer);
 
   if (isCsv()) {
     state.outputText = anonymizeCsvText(state.sourceText, anonymizer, {

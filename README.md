@@ -13,7 +13,7 @@ En liten anonymiseringsapp som kjører **100% lokalt i nettleseren**. Ingen data
 - CSV: header-basert anonymisering av navnkolonner (`navn`, `fornavn`, `etternavn`, `name`, `first_name`, `last_name`, `full_name`, m.fl.).
   - Maskering: `[NAME]`
   - Pseudonymisering: `[NAME_1]`, `[NAME_2]`, ...
-- Valgfri pseudonymisering i UI (`[EMAIL_#]`, `[PHONE_#]`, `[FNR_#]`, `[NAME_#]`).
+- Valgfri pseudonymisering i UI (`[EMAIL_#]`, `[PHONE_#]`, `[FNR_#]`, `[NAME_#]`) med stabil mapping per unik verdi i én kjøring.
 - CSV-anonymisering av øvrige celler (header kan anonymiseres via checkbox).
 - Last ned anonymisert output (`.txt` og `.csv`).
 - Debug-toggle + self-check-knapp.
@@ -35,7 +35,8 @@ En liten anonymiseringsapp som kjører **100% lokalt i nettleseren**. Ingen data
    - samme inputverdi gir samme token i samme kjøring.
 5. Last `web/fixtures/sample_semicolon.csv` og anonymiser: delimiter skal forbli semikolon i output.
 6. Last ned CSV og åpne i Excel (eller kompatibelt verktøy) for å bekrefte brukbart format.
-7. Klikk **Self-check** og bekreft PASS.
+7. Verifiser at duplikater i CSV får samme token (f.eks. samme epost => samme `[EMAIL_#]`) og ulike verdier får ulike tokens.
+8. Klikk **Self-check** og bekreft PASS.
 
 ## Known limitations
 - Navn i fritekst detekteres **ikke** automatisk.

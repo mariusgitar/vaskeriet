@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
 - README oppdatert med feature-beskrivelse, known limitations og PR2a teststeg.
 
 ### Fixed
-- Pseudonym-mapping er nå konsistent innen én anonymiseringskjøring også for CSV-celler.
+- Stable pseudonyms per unique value (consistent mapping) i hele anonymiseringskjøringen for både TXT og CSV.
 - CSV delimiter auto-detection (semicolon/comma) fungerer nå for både semikolon- og komma-separert input.
 
 ## [v0.3.0]

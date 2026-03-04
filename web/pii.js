@@ -8,26 +8,50 @@ function isPlausibleFnr(value) {
   return dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12;
 }
 
-function createTokenFactory(enabled, label) {
-  if (!enabled) {
-    return () => `[${label}]`;
+export class Pseudonymizer {
+  constructor() {
+    this.maps = {
+      NAME: new Map(),
+      EMAIL: new Map(),
+      PHONE: new Map(),
+      FNR: new Map(),
+    };
+    this.counters = {
+      NAME: 0,
+      EMAIL: 0,
+      PHONE: 0,
+      FNR: 0,
+    };
   }
 
-  const seen = new Map();
-  return (rawValue) => {
-    if (!seen.has(rawValue)) {
-      seen.set(rawValue, `[${label}_${seen.size + 1}]`);
+  token(family, original) {
+    if (!this.maps[family]) {
+      return `[${family}]`;
     }
-    return seen.get(rawValue);
-  };
+
+    const key = String(original);
+    if (!this.maps[family].has(key)) {
+      this.counters[family] += 1;
+      this.maps[family].set(key, `[${family}_${this.counters[family]}]`);
+    }
+    return this.maps[family].get(key);
+  }
+}
+
+function createTokenResolver({ pseudonymize, pseudonymizer, family }) {
+  if (!pseudonymize) {
+    return () => `[${family}]`;
+  }
+  return (value) => pseudonymizer.token(family, value);
 }
 
 export function createAnonymizer(options = {}) {
-  const { pseudonymize = false, debug = false } = options;
-  const emailToken = createTokenFactory(pseudonymize, 'EMAIL');
-  const phoneToken = createTokenFactory(pseudonymize, 'PHONE');
-  const fnrToken = createTokenFactory(pseudonymize, 'FNR');
-  const nameToken = createTokenFactory(pseudonymize, 'NAME');
+  const { pseudonymize = false, debug = false, pseudonymizer = new Pseudonymizer() } = options;
+
+  const emailToken = createTokenResolver({ pseudonymize, pseudonymizer, family: 'EMAIL' });
+  const phoneToken = createTokenResolver({ pseudonymize, pseudonymizer, family: 'PHONE' });
+  const fnrToken = createTokenResolver({ pseudonymize, pseudonymizer, family: 'FNR' });
+  const nameToken = createTokenResolver({ pseudonymize, pseudonymizer, family: 'NAME' });
 
   function anonymizeValue(input) {
     let output = input.replace(EMAIL_REGEX, (match) => emailToken(match));
@@ -48,6 +72,7 @@ export function createAnonymizer(options = {}) {
   return {
     anonymizeValue,
     anonymizeNameCell: (input) => nameToken(input),
+    pseudonymizer,
   };
 }
 
@@ -68,6 +93,12 @@ export function runSelfChecks() {
       input: 'a@b.no a@b.no 12345678 12345678',
       options: { pseudonymize: true },
       assert: (value) => (value.match(/\[EMAIL_1\]/g) || []).length === 2 && (value.match(/\[PHONE_1\]/g) || []).length === 2,
+    },
+    {
+      name: 'pseudonym distinct values get distinct tokens',
+      input: 'first@example.no second@example.no',
+      options: { pseudonymize: true },
+      assert: (value) => value.includes('[EMAIL_1]') && value.includes('[EMAIL_2]') && !value.includes('example.no'),
     },
     {
       name: 'non-plausible fnr untouched',
