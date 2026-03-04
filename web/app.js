@@ -1,5 +1,5 @@
 import { anonymizeText, runSelfChecks } from './pii.js';
-import { csvSupportStatus } from './csv.js';
+import { anonymizeCsvText, csvSupportStatus } from './csv.js';
 
 const MAX_PREVIEW = 20_000;
 
@@ -19,8 +19,13 @@ const afterPreviewEl = document.getElementById('after-preview');
 const anonymizeBtn = document.getElementById('anonymize-btn');
 const downloadBtn = document.getElementById('download-btn');
 const pseudoToggle = document.getElementById('mode-pseudo');
+const csvHeaderToggle = document.getElementById('csv-header-toggle');
 const debugToggle = document.getElementById('debug-toggle');
 const selfCheckBtn = document.getElementById('self-check-btn');
+
+function isCsv() {
+  return state.sourceName.toLowerCase().endsWith('.csv');
+}
 
 function logDebug(...args) {
   if (state.debug) {
@@ -42,13 +47,20 @@ function updatePreview() {
   afterPreviewEl.textContent = asPreview(state.outputText);
 }
 
+function anonymizeValue(text) {
+  return anonymizeText(text, {
+    pseudonymize: pseudoToggle.checked,
+    debug: state.debug,
+  });
+}
+
 async function readFile(file) {
   state.sourceName = file.name;
   state.sourceText = await file.text();
   state.outputText = '';
 
   fileMetaEl.textContent = `${file.name} (${file.type || 'unknown type'}, ${file.size} bytes)`;
-  setStatus(file.name.toLowerCase().endsWith('.csv') ? csvSupportStatus() : 'Fil lastet. Klar for anonymisering.');
+  setStatus(isCsv() ? csvSupportStatus(csvHeaderToggle.checked) : 'Fil lastet. Klar for anonymisering.');
 
   anonymizeBtn.disabled = false;
   downloadBtn.disabled = true;
@@ -93,10 +105,13 @@ dropZone.addEventListener('drop', (event) => {
 });
 
 anonymizeBtn.addEventListener('click', () => {
-  state.outputText = anonymizeText(state.sourceText, {
-    pseudonymize: pseudoToggle.checked,
-    debug: state.debug,
-  });
+  if (isCsv()) {
+    state.outputText = anonymizeCsvText(state.sourceText, anonymizeValue, {
+      includeHeader: csvHeaderToggle.checked,
+    });
+  } else {
+    state.outputText = anonymizeValue(state.sourceText);
+  }
 
   updatePreview();
   downloadBtn.disabled = false;
@@ -104,8 +119,9 @@ anonymizeBtn.addEventListener('click', () => {
 });
 
 downloadBtn.addEventListener('click', () => {
-  const ext = state.sourceName.toLowerCase().endsWith('.csv') ? 'csv' : 'txt';
-  const blob = new Blob([state.outputText], { type: 'text/plain;charset=utf-8' });
+  const ext = isCsv() ? 'csv' : 'txt';
+  const mimeType = isCsv() ? 'text/csv;charset=utf-8' : 'text/plain;charset=utf-8';
+  const blob = new Blob([state.outputText], { type: mimeType });
   const outName = `${state.sourceName.replace(/\.[^.]+$/, '') || 'anonymized'}.anonymized.${ext}`;
 
   const url = URL.createObjectURL(blob);
@@ -116,6 +132,12 @@ downloadBtn.addEventListener('click', () => {
   URL.revokeObjectURL(url);
 
   setStatus(`Lastet ned: ${outName}`);
+});
+
+csvHeaderToggle.addEventListener('change', () => {
+  if (isCsv()) {
+    setStatus(csvSupportStatus(csvHeaderToggle.checked));
+  }
 });
 
 debugToggle.addEventListener('change', () => {

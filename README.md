@@ -2,34 +2,34 @@
 
 En liten anonymiseringsapp som kjører **100% lokalt i nettleseren**. Ingen data sendes til server.
 
-## PR1 scope (skeleton + basic text scrub)
+## PR2 scope (CSV support + download)
 - Ren HTML/CSS/JS uten build-step.
 - Drag & drop + filvelger for `.txt` og `.csv`.
 - Side-by-side preview (før/etter), avkortet til maks 20k tegn.
-- Regler for anonymisering i tekst:
+- Regler for anonymisering:
   - Email → `[EMAIL]`
   - Norsk telefonnummer → `[PHONE]`
   - Fødselsnummer (11 siffer med enkel plausibilitet dd/mm) → `[FNR]`
-- Valgfri pseudonymisering i UI:
-  - `[EMAIL_1]`, `[PHONE_1]`, `[FNR_1]` per unik verdi.
-- Last ned anonymisert fil.
+- Valgfri pseudonymisering i UI (`[EMAIL_1]`, `[PHONE_1]`, `[FNR_1]`).
+- CSV-støtte med lokal parser/serialisering (inkl. anførselstegn og komma i felter).
+- CSV-anonymisering av alle celler, med valgfri anonymisering av header via checkbox.
+- Last ned anonymisert output (`.txt` og `.csv`).
 - Debug-toggle + self-check-knapp.
-
-> CSV cellenivå-parser med robust quote/komma-håndtering leveres i PR2.
 
 ## Kjøring lokalt
 1. Åpne `web/index.html` i nettleser.
-2. Last opp `web/fixtures/sample.txt`.
+2. Last opp `web/fixtures/sample.txt` eller `web/fixtures/sample.csv`.
 3. Trykk **Anonymiser**.
 4. Trykk **Last ned**.
 
-## Testkriterier (PR1)
-- Åpne `web/index.html` lokalt → last `sample.txt` → preview viser endring → last ned fungerer.
-- Email og telefon blir maskert i txt.
+## Testkriterier (PR2)
+- Last `sample.csv` → anonymisering skjer i alle celler (header styres av checkbox).
+- Last ned CSV → filen åpner i Excel og inneholder tokens.
+- Last `sample.txt` → email/telefon maskeres som før.
 
 ## Feilsøking (kort)
 - Hvis **Anonymiser** er grå: sjekk at filtype er `.txt` eller `.csv`.
-- Hvis preview ser tom ut: test med mindre fil først.
+- Hvis CSV ser feil ut etter eksport: sjekk felt med komma/anførselstegn i input.
 - Skru på **Debug** for konsoll-logger.
 - Klikk **Self-check** for enkel PASS/FAIL av kjerneregler.
 
@@ -41,6 +41,6 @@ En liten anonymiseringsapp som kjører **100% lokalt i nettleseren**. Ingen data
 Se også [`SECURITY.md`](SECURITY.md).
 
 ## Next PR plan
-- Implementere robust CSV parse/serialize (inkl. anførselstegn/komma).
-- Anonymisere alle CSV-celler, med valgfri anonymisering av header.
-- Bedre CSV-spesifikke tester og eksportvalidering (Excel-kompatibilitet).
+- Legge til GitHub Pages deploy-workflow på push til `main`.
+- Sikre Pages-hosting uten Jekyll ved behov (`.nojekyll`).
+- Mindre UX-polering og deploy-dokumentasjon.
