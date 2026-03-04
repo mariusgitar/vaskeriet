@@ -2,19 +2,14 @@
 
 En liten anonymiseringsapp som kjører **100% lokalt i nettleseren**. Ingen data sendes til server.
 
-## PR2 scope (CSV support + download)
+## PR3 scope (Pages deploy + polish)
 - Ren HTML/CSS/JS uten build-step.
-- Drag & drop + filvelger for `.txt` og `.csv`.
+- Støtte for `.txt` og `.csv` med lokal anonymisering i browser.
 - Side-by-side preview (før/etter), avkortet til maks 20k tegn.
-- Regler for anonymisering:
-  - Email → `[EMAIL]`
-  - Norsk telefonnummer → `[PHONE]`
-  - Fødselsnummer (11 siffer med enkel plausibilitet dd/mm) → `[FNR]`
-- Valgfri pseudonymisering i UI (`[EMAIL_1]`, `[PHONE_1]`, `[FNR_1]`).
-- CSV-støtte med lokal parser/serialisering (inkl. anførselstegn og komma i felter).
-- CSV-anonymisering av alle celler, med valgfri anonymisering av header via checkbox.
-- Last ned anonymisert output (`.txt` og `.csv`).
-- Debug-toggle + self-check-knapp.
+- Pseudonymisering/maskering, debug-toggle og self-check.
+- GitHub Pages deploy-workflow på push til `main`.
+- Deploy av statisk innhold direkte fra `web/`.
+- `.nojekyll` inkludert for stabil statisk hosting.
 
 ## Kjøring lokalt
 1. Åpne `web/index.html` i nettleser.
@@ -22,16 +17,25 @@ En liten anonymiseringsapp som kjører **100% lokalt i nettleseren**. Ingen data
 3. Trykk **Anonymiser**.
 4. Trykk **Last ned**.
 
-## Testkriterier (PR2)
-- Last `sample.csv` → anonymisering skjer i alle celler (header styres av checkbox).
-- Last ned CSV → filen åpner i Excel og inneholder tokens.
-- Last `sample.txt` → email/telefon maskeres som før.
+## Deploy (GitHub Pages)
+Workflow: `.github/workflows/pages.yml`.
+
+- Trigger: push til `main`.
+- Artifact: `./web` lastes opp og deployes.
+- Krav i repo settings:
+  1. `Settings` → `Pages`.
+  2. Source: **GitHub Actions**.
+
+## Testkriterier (PR3)
+- Etter merge til `main` kjører workflow automatisk.
+- GitHub Pages-lenken viser appen.
+- `sample.txt` og `sample.csv` fungerer i Pages-miljø.
 
 ## Feilsøking (kort)
-- Hvis **Anonymiser** er grå: sjekk at filtype er `.txt` eller `.csv`.
-- Hvis CSV ser feil ut etter eksport: sjekk felt med komma/anførselstegn i input.
+- Hvis workflow feiler: sjekk at Pages source er satt til **GitHub Actions**.
+- Hvis app ikke oppdateres: verifiser siste run i Actions-fanen og åpne ny incognito-fane.
+- Hvis CSV ser feil ut etter eksport: sjekk input med anførselstegn/komma.
 - Skru på **Debug** for konsoll-logger.
-- Klikk **Self-check** for enkel PASS/FAIL av kjerneregler.
 
 ## Security / Privacy
 - Ingen `fetch`, XHR eller WebSocket for databehandling.
@@ -41,6 +45,4 @@ En liten anonymiseringsapp som kjører **100% lokalt i nettleseren**. Ingen data
 Se også [`SECURITY.md`](SECURITY.md).
 
 ## Next PR plan
-- Legge til GitHub Pages deploy-workflow på push til `main`.
-- Sikre Pages-hosting uten Jekyll ved behov (`.nojekyll`).
-- Mindre UX-polering og deploy-dokumentasjon.
+- Ingen planlagte funksjonsendringer nå; fokus på vedlikehold, bugfixes og eventuelle regex-forbedringer.
