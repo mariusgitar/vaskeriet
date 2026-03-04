@@ -1,0 +1,3 @@
+navn,etternavn,email,telefon,fnr,notat
+Ola,Hansen,ola@example.no,+4712345678,01019012345,"Har komma, og ""anførselstegn"""
+Kari,Normann,kari.nordmann@example.no,"12 34 56 78",02029012345,"Ring etter kl 16"
