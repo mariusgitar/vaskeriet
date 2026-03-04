@@ -29,7 +29,23 @@ export function getNameColumnIndexes(headerRow = []) {
   return indexes;
 }
 
-export function parseCsv(input) {
+function countChar(text, char) {
+  return (text.match(new RegExp(`\\${char}`, 'g')) || []).length;
+}
+
+export function detectDelimiter(input) {
+  const firstNonEmptyLine = String(input ?? '')
+    .split(/\r?\n/)
+    .find((line) => line.trim().length > 0);
+
+  if (!firstNonEmptyLine) {
+    return ',';
+  }
+
+  return countChar(firstNonEmptyLine, ';') > countChar(firstNonEmptyLine, ',') ? ';' : ',';
+}
+
+export function parseCsv(input, delimiter = ',') {
   const rows = [];
   let row = [];
   let cell = '';
@@ -57,7 +73,7 @@ export function parseCsv(input) {
       continue;
     }
 
-    if (ch === ',') {
+    if (ch === delimiter) {
       row.push(cell);
       cell = '';
       continue;
@@ -87,17 +103,18 @@ export function parseCsv(input) {
 function escapeCsvCell(value) {
   const raw = String(value ?? '');
   const escaped = raw.replace(/"/g, '""');
-  const needsQuotes = /[",\n\r]/.test(raw);
+  const needsQuotes = /[",;\n\r]/.test(raw);
   return needsQuotes ? `"${escaped}"` : escaped;
 }
 
-export function serializeCsv(rows) {
-  return rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(',')).join('\n');
+export function serializeCsv(rows, delimiter = ',') {
+  return rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(delimiter)).join('\n');
 }
 
 export function anonymizeCsvText(input, anonymizeFn, options = {}) {
   const { includeHeader = false, debug = false } = options;
-  const rows = parseCsv(input);
+  const delimiter = detectDelimiter(input);
+  const rows = parseCsv(input, delimiter);
 
   if (rows.length === 0) {
     return '';
@@ -108,7 +125,7 @@ export function anonymizeCsvText(input, anonymizeFn, options = {}) {
 
   if (debug) {
     const matchedHeaders = nameColumnIndexes.map((index) => headerRow[index]);
-    console.debug('[csv] name-column match', { nameColumnIndexes, matchedHeaders });
+    console.debug('[csv] name-column match', { delimiter, nameColumnIndexes, matchedHeaders });
   }
 
   const startRow = includeHeader ? 0 : 1;
@@ -125,7 +142,7 @@ export function anonymizeCsvText(input, anonymizeFn, options = {}) {
     });
   });
 
-  return serializeCsv(outRows);
+  return serializeCsv(outRows, delimiter);
 }
 
 export function runCsvSelfChecks(anonymizeFnFactory) {
@@ -134,9 +151,16 @@ export function runCsvSelfChecks(anonymizeFnFactory) {
     'Ola,Hansen,ola@example.no,12345678,01019012345,"Hei, test"',
     'Kari,Normann,kari@example.no,"12 34 56 78",02029012345,ok',
   ].join('\n');
+  const sampleSemicolonCsv = [
+    'navn;telefonnummer;personnummer;epost;hjemmekontor_dager_per_uke',
+    'Anders Johansen;41234567;12058512345;anders.johansen@example.com;2',
+  ].join('\n');
 
   const masked = anonymizeCsvText(sampleCsv, anonymizeFnFactory({ pseudonymize: false }), { includeHeader: false });
   const pseudo = anonymizeCsvText(sampleCsv, anonymizeFnFactory({ pseudonymize: true }), { includeHeader: false });
+  const semicolonMasked = anonymizeCsvText(sampleSemicolonCsv, anonymizeFnFactory({ pseudonymize: false }), {
+    includeHeader: false,
+  });
 
   return [
     {
@@ -151,11 +175,21 @@ export function runCsvSelfChecks(anonymizeFnFactory) {
       name: 'csv still masks email/phone/fnr',
       pass: masked.includes('[EMAIL]') && masked.includes('[PHONE]') && masked.includes('[FNR]'),
     },
+    {
+      name: 'csv semicolon delimiter preserved and anonymized',
+      pass:
+        semicolonMasked.includes(';') &&
+        semicolonMasked.includes('[NAME]') &&
+        semicolonMasked.includes('[PHONE]') &&
+        semicolonMasked.includes('[FNR]') &&
+        semicolonMasked.includes('[EMAIL]') &&
+        !semicolonMasked.includes(','),
+    },
   ];
 }
 
 export function csvSupportStatus(includeHeader) {
   return includeHeader
-    ? 'CSV: anonymiserer alle dataceller, og header hvis valgt. Navnekolonner matches via header.'
-    : 'CSV: anonymiserer dataceller. Navnekolonner matches via header.';
+    ? 'CSV: anonymiserer alle dataceller, og header hvis valgt. Navnekolonner matches via header. Komma/semikolon støttes automatisk.'
+    : 'CSV: anonymiserer dataceller. Navnekolonner matches via header. Komma/semikolon støttes automatisk.';
 }

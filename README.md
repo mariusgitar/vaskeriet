@@ -4,7 +4,7 @@ En liten anonymiseringsapp som kjører **100% lokalt i nettleseren**. Ingen data
 
 ## Features
 - Ren HTML/CSS/JS uten build-step.
-- Drag & drop + filvelger for `.txt` og `.csv`.
+- Drag & drop + filvelger for `.txt` og `.csv` (automatisk støtte for komma- og semikolon-separert CSV (delimiter auto-detect)).
 - Side-by-side preview (før/etter), avkortet til maks 20k tegn.
 - Regler for anonymisering:
   - Email → `[EMAIL]`
@@ -20,11 +20,11 @@ En liten anonymiseringsapp som kjører **100% lokalt i nettleseren**. Ingen data
 
 ## Kjøring lokalt
 1. Åpne `web/index.html` i nettleser.
-2. Last opp `web/fixtures/sample.txt` eller `web/fixtures/sample.csv`.
+2. Last opp `web/fixtures/sample.txt`, `web/fixtures/sample.csv` eller `web/fixtures/sample_semicolon.csv`.
 3. Trykk **Anonymiser**.
 4. Trykk **Last ned**.
 
-## How to test (PR2a)
+## How to test (PR2a1)
 1. Åpne `web/index.html` lokalt.
 2. Last `web/fixtures/sample.csv`.
 3. Kjør anonymisering med maskering:
@@ -33,8 +33,9 @@ En liten anonymiseringsapp som kjører **100% lokalt i nettleseren**. Ingen data
 4. Slå på pseudonymisering og anonymiser igjen:
    - navnkolonner blir `[NAME_1]`, `[NAME_2]`, ...
    - samme inputverdi gir samme token i samme kjøring.
-5. Last ned CSV og åpne i Excel (eller kompatibelt verktøy) for å bekrefte brukbart format.
-6. Klikk **Self-check** og bekreft PASS.
+5. Last `web/fixtures/sample_semicolon.csv` og anonymiser: delimiter skal forbli semikolon i output.
+6. Last ned CSV og åpne i Excel (eller kompatibelt verktøy) for å bekrefte brukbart format.
+7. Klikk **Self-check** og bekreft PASS.
 
 ## Known limitations
 - Navn i fritekst detekteres **ikke** automatisk.
@@ -43,7 +44,7 @@ En liten anonymiseringsapp som kjører **100% lokalt i nettleseren**. Ingen data
 
 ## Feilsøking (kort)
 - Hvis **Anonymiser** er grå: sjekk at filtype er `.txt` eller `.csv`.
-- Hvis CSV ser feil ut etter eksport: sjekk input med anførselstegn/komma.
+- Hvis CSV ser feil ut etter eksport: sjekk input med anførselstegn, komma eller semikolon.
 - Skru på **Debug** for konsoll-logger (inkl. matchede name-kolonner).
 
 ## Deploy (GitHub Pages)

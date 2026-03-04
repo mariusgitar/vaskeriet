@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - PR2a: Nye hjelpefunksjoner for header-normalisering og navnkolonne-match (`normalizeHeader`, `isNameHeader`, `getNameColumnIndexes`).
 - PR2a: Self-check utvidet med CSV-navnkontroller (ingen rå navn + NAME-tokens + fortsatt EMAIL/PHONE/FNR masking).
 - Oppdatert `web/fixtures/sample.csv` med tydelige `navn`/`etternavn` kolonner.
+- Lagt til `web/fixtures/sample_semicolon.csv` for semikolon-separert testdekning.
 
 ### Changed
 - CSV-anonymisering bruker nå `NAME`-token family for navnkolonner basert på header.
@@ -15,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Pseudonym-mapping er nå konsistent innen én anonymiseringskjøring også for CSV-celler.
+- CSV delimiter auto-detection (semicolon/comma) fungerer nå for både semikolon- og komma-separert input.
 
 ## [v0.3.0]
 - GitHub Pages workflow (`.github/workflows/pages.yml`) for deploy on push to `main`.
