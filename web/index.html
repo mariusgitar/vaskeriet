@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PII Scrubber (lokal)</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>PII Scrubber (100% lokal i nettleseren)</h1>
+      <p class="muted">Ingen data sendes til server. Dra inn en fil eller velg manuelt.</p>
+
+      <section class="panel">
+        <div id="drop-zone" class="drop-zone" aria-label="Filopplasting" tabindex="0">
+          <p>Dra inn <code>.txt</code> eller <code>.csv</code> her</p>
+          <p>eller</p>
+          <label class="button" for="file-input">Velg fil</label>
+          <input id="file-input" type="file" accept=".txt,.csv,text/plain,text/csv" />
+          <p id="file-meta" class="meta">Ingen fil valgt.</p>
+        </div>
+
+        <div class="controls">
+          <label><input id="mode-pseudo" type="checkbox" /> Pseudonymisering (ellers maskering)</label>
+          <label><input id="csv-header-toggle" type="checkbox" /> Anonymiser CSV-header</label>
+          <label><input id="debug-toggle" type="checkbox" /> Debug</label>
+        </div>
+
+        <div class="controls">
+          <button id="anonymize-btn" disabled>Anonymiser</button>
+          <button id="download-btn" disabled>Last ned</button>
+          <button id="self-check-btn" type="button">Self-check</button>
+        </div>
+
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="preview-grid">
+        <article>
+          <h2>Før (preview)</h2>
+          <pre id="before-preview"></pre>
+        </article>
+        <article>
+          <h2>Etter (preview)</h2>
+          <pre id="after-preview"></pre>
+        </article>
+      </section>
+
+      
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
