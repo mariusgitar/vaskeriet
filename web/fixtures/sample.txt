@@ -1,0 +1,3 @@
+Hei,
+Kontakt meg på kari.nordmann@example.no eller +47 12 34 56 78.
+Fødselsnummer test: 01019012345.
