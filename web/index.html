@@ -8,25 +8,29 @@
   </head>
   <body>
     <main class="container">
-      <h1>PII Scrubber (100% lokal i nettleseren)</h1>
-      <p class="muted">Ingen data sendes til server. Dra inn en fil eller velg manuelt.</p>
-
       <section class="panel">
+        <h1>PII Scrubber</h1>
+        <p class="muted">Dra inn fil eller velg manuelt. All behandling skjer lokalt i nettleseren.</p>
+
+        <section class="mode-strip" aria-label="Verktøymodus">
+          <button class="mode-tab active" type="button" disabled>Anonymiser fil</button>
+          <button class="mode-tab" type="button" disabled>Forhåndsvisning</button>
+        </section>
+
         <div id="drop-zone" class="drop-zone" aria-label="Filopplasting" tabindex="0">
-          <p>Dra inn <code>.txt</code> eller <code>.csv</code> her</p>
-          <p>eller</p>
-          <label class="button" for="file-input">Velg fil</label>
+          <p class="drop-label">Slipp <code>.txt</code> eller <code>.csv</code> her</p>
+          <label class="button pick-file" for="file-input">Velg fil</label>
           <input id="file-input" type="file" accept=".txt,.csv,text/plain,text/csv" />
           <p id="file-meta" class="meta">Ingen fil valgt.</p>
         </div>
 
-        <div class="controls">
-          <label><input id="mode-pseudo" type="checkbox" /> Pseudonymisering (ellers maskering)</label>
+        <div class="controls toggles">
+          <label><input id="mode-pseudo" type="checkbox" /> Pseudonymisering</label>
           <label><input id="csv-header-toggle" type="checkbox" /> Anonymiser CSV-header</label>
           <label><input id="debug-toggle" type="checkbox" /> Debug</label>
         </div>
 
-        <div class="controls">
+        <div class="controls actions">
           <button id="anonymize-btn" disabled>Anonymiser</button>
           <button id="download-btn" disabled>Last ned</button>
           <button id="self-check-btn" type="button">Self-check</button>
@@ -45,8 +49,6 @@
           <pre id="after-preview"></pre>
         </article>
       </section>
-
-      
     </main>
 
     <script type="module" src="app.js"></script>
